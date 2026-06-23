@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rooms } from 'src/model/rooms/rooms';
 import { Repository } from "typeorm"
@@ -7,6 +7,7 @@ import { Users } from 'src/model/users/users';
 import { UserResponseDto } from 'src/model/dto/user.dto';
 import { AccessToken, SIPGrant, VideoGrant } from 'livekit-server-sdk';
 import { RoomData } from 'src/utils/types';
+import { HttpException } from '@nestjs/common';
 
 @Injectable()
 export class RoomsService {
@@ -23,7 +24,13 @@ export class RoomsService {
       throw new Error("User is not logged in")
     }
     const creator = await this.usersRpository.findOne({
-      where: { id: body.creatorId }
+      where: { id: body.creatorId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        isActive: true
+      }
     })
     let data: any
     if (creator) {
@@ -44,8 +51,8 @@ export class RoomsService {
     }
   }
 
-  findAll(): Promise<Rooms[]> {
-    return this.roomsRepository.find();
+  async findAll(): Promise<Rooms[]> {
+    return await this.roomsRepository.find();
   }
 
   async findOne(id: string): Promise<RoomData | null> {
@@ -75,7 +82,7 @@ export class RoomsService {
         members: true
       }
     })
-    if (!data) return null
+    if (!data) throw new HttpException('room not found', HttpStatus.NOT_FOUND)
     return data
   }
   async joinroom(id: string, roomname: string | undefined): Promise<string> {
@@ -87,7 +94,8 @@ export class RoomsService {
       where: { id },
       relations: { groups: true }
     })
-    if (!room || !user) return "no user and no string"
+    if (!room || !user) throw new HttpException('such user or room not found', HttpStatus.NOT_FOUND)
+
     user.groups.some(el => el.roomname == roomname)
     user.groups.push(room)
     await this.usersRpository.save(user)

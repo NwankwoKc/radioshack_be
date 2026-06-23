@@ -1,11 +1,13 @@
-import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from 'src/model/users/users';
 import { Repository } from "typeorm"
 import * as bcrypt from 'bcrypt'
-import { CreateUserDto, LoginDto, UserResponseDto } from 'src/model/dto/user.dto';
+import { CreateUserDto, LoginDto } from 'src/model/dto/user.dto';
 import { Rooms } from "src/model/rooms/rooms"
 import { userdetailresponse, userResponse } from 'src/utils/types';
+import { HttpException } from '@nestjs/common';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -48,7 +50,7 @@ export class UsersService {
     })
     return data
   }
-  async finduser(id: string): Promise<userdetailresponse | null> {
+  async finduser(id: string): Promise<userdetailresponse> {
     let data = await this.userrepository.findOne({
       where: { id },
       relations: {
@@ -56,7 +58,7 @@ export class UsersService {
         createdgroups: true
       }
     })
-    if (!data) return null
+    if (!data) throw new NotFoundException('usernotfound')
     return {
       id: data.id,
       username: data.username,
@@ -70,7 +72,7 @@ export class UsersService {
     this.userrepository.delete(id)
   }
   async login(body: LoginDto): Promise<userdetailresponse | null> {
-    if (!body.password) return null
+    if (!body.password) throw new HttpException('password field is empty', HttpStatus.BAD_REQUEST)
     const check = await this.userrepository.findOneBy({ email: body.email })
     if (!check) throw new BadRequestException("email does not exist")
     const isPasswordValid = bcrypt.compare(body.password, check.password)
