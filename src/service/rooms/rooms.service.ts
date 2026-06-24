@@ -23,7 +23,7 @@ export class RoomsService {
 
   async createroom(body: CreateRoomDto): Promise<UserResponseDto> {
     if (body.creatorId == null) {
-      throw new Error("User is not logged in")
+      throw new HttpException("User is not logged in", HttpStatus.BAD_REQUEST)
     }
     const creator = await this.usersRpository.findOne({
       where: { id: body.creatorId },
