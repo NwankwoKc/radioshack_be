@@ -8,6 +8,7 @@ import { UserResponseDto } from 'src/model/dto/user.dto';
 import { AccessToken, SIPGrant, VideoGrant } from 'livekit-server-sdk';
 import { RoomData } from 'src/utils/types';
 import { HttpException } from '@nestjs/common';
+import { EnviromentserviceService } from '../enviromentservice/enviromentservice.service';
 
 @Injectable()
 export class RoomsService {
@@ -15,7 +16,8 @@ export class RoomsService {
     @InjectRepository(Rooms)
     private roomsRepository: Repository<Rooms>,
     @InjectRepository(Users)
-    private usersRpository: Repository<Users>
+    private usersRpository: Repository<Users>,
+    private enviroment: EnviromentserviceService
   ) { }
 
 
@@ -105,7 +107,7 @@ export class RoomsService {
         name: user.username
       }
     }
-    const at = new AccessToken('APIcFKT2xPzgpAA', 'sTjspHnv47QvDi2o3RnMv13BkRCAkuzGOBeobhr2joB', ops)
+    const at = new AccessToken(this.enviroment.apikey(), this.enviroment.secretekey(), ops)
     const token = await at.toJwt()
     return token
   }
@@ -122,7 +124,7 @@ export class RoomsService {
     const roomName = roomname;
     const creatorName = participantname;
 
-    const at = new AccessToken('APIcFKT2xPzgpAA', 'sTjspHnv47QvDi2o3RnMv13BkRCAkuzGOBeobhr2joB', {
+    const at = new AccessToken(this.enviroment.apikey(), this.enviroment.secretekey(), {
       identity: creatorName
     });
     const videoGrant: VideoGrant = { roomJoin: true, room: roomName };

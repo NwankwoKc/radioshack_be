@@ -10,4 +10,10 @@ export class EnviromentserviceService {
   isproduction(): boolean {
     return this.configservice.get('NODEENV') == 'production';
   }
+  apikey(): string | undefined {
+    return this.configservice.get<string>('APIKEY')
+  }
+  secretekey(): string | undefined {
+    return this.configservice.get<string>('SECRETEKEY')
+  }
 }
