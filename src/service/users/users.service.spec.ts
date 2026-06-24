@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Rooms } from 'src/model/rooms/rooms';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt'
+import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('UsersService', () => {
   const resolvedata = {
@@ -26,7 +27,6 @@ describe('UsersService', () => {
     createdgroups: [],
     isActive: true
   }
-
 
   const resolveroomdata = {
     id: '1234567',
@@ -89,53 +89,112 @@ describe('UsersService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  it('createuser', async () => {
-    jest.spyOn(bcrypt, 'hash').mockImplementation((pass: string, salt: number) => Promise.resolve('hashedpassword'))
-    userRepository.findOneBy.mockResolvedValue(null)
-    userRepository.save.mockResolvedValue(resolvedata)
+  describe('createuser', () => {
+    it('when create user is successful', async () => {
+      jest.spyOn(bcrypt, 'hash').mockImplementation((pass: string, salt: number) => Promise.resolve('hashedpassword'))
+      userRepository.findOneBy.mockResolvedValue(null)
+      userRepository.save.mockResolvedValue(resolvedata)
 
-    let signup = await service.createuser(body)
+      let signup = await service.createuser(body)
 
-    expect(userRepository.findOne).toHaveBeenCalled()
-    expect(userRepository.save).toHaveBeenCalled()
-    expect(bcrypt.hash).toHaveBeenCalled()
-    expect(bcrypt.hash).toHaveBeenCalledWith(body.password, 12)
-    expect(signup).toEqual(resolveduser)
+      expect(userRepository.findOne).toHaveBeenCalled()
+      expect(userRepository.save).toHaveBeenCalled()
+      expect(bcrypt.hash).toHaveBeenCalled()
+      expect(bcrypt.hash).toHaveBeenCalledWith(body.password, 12)
+      expect(signup).toEqual(resolveduser)
+    })
+    it('if user with email already exist', async () => {
+      userRepository.findOneBy.mockResolvedValue(resolvedata)
+
+      let signup = await service.createuser(body)
+      expect(userRepository).toHaveBeenCalledWith({
+        email: body.email
+      })
+      expect(signup).toThrow(new ConflictException('User with this email already exists'))
+    })
 
   })
+  describe('finduser', () => {
+    it('when finduser is successful', () => {
+      const id = "111333id"
+      let mockedval = { ...resolvedata, password: "anythingpassword" }
+      userRepository.findOne.mockResolvedValue(mockedval)
 
-  it('finduser', () => {
-    const id = "111333id"
-    let mockedval = { ...resolvedata, password: "anythingpassword" }
-    userRepository.findOne.mockResolvedValue(mockedval)
+      let getuser = service.finduser(id)
 
-    let getuser = service.finduser(id)
+      expect(userRepository.findOne).toHaveBeenCalled()
+      expect(getuser).toEqual(resolvedata)
+    })
 
-    expect(userRepository.findOne).toHaveBeenCalled()
-    expect(getuser).toEqual(resolvedata)
+    it('when usernot successful', () => {
+      const id = "111333id"
+      userRepository.findOne.mockResolvedValue(null)
+
+      let getuser = service.finduser(id)
+      expect(userRepository.findOne).toHaveBeenCalled()
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: { id },
+        relations: {
+          groups: true,
+          createdgroups: true
+        }
+      })
+      expect(getuser).toThrow(new NotFoundException('usernotfound')
+      )
+    })
   })
 
-  it('remove', () => {
-    let id = "123dkdk"
-    let remove = service.remove(id)
-    expect(userRepository.remove).toHaveBeenCalled()
+  describe('remove', () => {
+    it('when remove user is successful', () => {
+      let id = "123dkdk"
+      let remove = service.remove(id)
+      expect(userRepository.remove).toHaveBeenCalled()
+    })
+
+  })
+  describe('login', () => {
+    it('when login is successful', () => {
+      jest.spyOn(bcrypt, 'compare').mockImplementation((bodypassword: string, resolvepassword: string) => true)
+
+      userRepository.findOneBy.mockResolvedValue(resolvedata)
+
+      let login = service.login(loginbody)
+
+      expect(bcrypt.compare).toHaveBeenCalled()
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password)
+      expect(login).toEqual(resolveduser)
+    })
+
+    it('when email does not exist', () => {
+      jest.spyOn(bcrypt, 'compare').mockImplementation((bodypassword: string, resolvepassword: string) => true)
+      userRepository.findOneBy.mockResolvedValue(null)
+
+      let login = service.login(loginbody)
+
+      expect(userRepository.findOne).toHaveBeenCalled()
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        email: loginbody.email
+      })
+      expect(login).toThrow(new BadRequestException("email does not exist"))
+    })
+
+    it('when password is incorrect', () => {
+      jest.spyOn(bcrypt, 'compare').mockImplementation((bodypassword: string, resolvepassword: string) => false)
+      userRepository.findOneBy.mockResolvedValue(resolvedata)
+
+      let login = service.login(loginbody)
+
+      expect(bcrypt.compare).toHaveBeenCalled()
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password)
+      expect(login).toThrow(new ConflictException("password is incorrect")
+      )
+    })
   })
 
-  it('login', () => {
-    jest.spyOn(bcrypt, 'compare').mockImplementation((bodypassword: string, resolvepassword: string) => true)
-
-    userRepository.findOneBy.mockResolvedValue(resolvedata)
-
-    let login = service.login(loginbody)
-
-    expect(bcrypt.compare).toHaveBeenCalled()
-    expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password)
-    expect(login).toEqual(resolveduser)
-  })
-
-  it('joingroup', () => {
-    roomRepository.findOne.mockResolvedValue(resolveroomdata)
-    userRepository.findOne.mockResolvedValue(resolvedata)
-
+  describe('joingroup', () => {
+    it('when joingroup is successful', () => {
+      roomRepository.findOne.mockResolvedValue(resolveroomdata)
+      userRepository.findOne.mockResolvedValue(resolvedata)
+    })
   })
 });

@@ -7,6 +7,7 @@ import { CreateUserDto, LoginDto } from 'src/model/dto/user.dto';
 import { Rooms } from "src/model/rooms/rooms"
 import { userdetailresponse, userResponse } from 'src/utils/types';
 import { HttpException } from '@nestjs/common';
+
 @Injectable()
 export class UsersService {
   constructor(
