@@ -7,6 +7,7 @@ import { WsService } from './service/ws/ws.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomsModule } from './model/rooms/rooms.module';
 import { UsersModule } from './model/users/users.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({

@@ -5,6 +5,8 @@ import { Rooms } from 'src/model/rooms/rooms';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccessToken } from 'livekit-server-sdk';
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { find } from 'rxjs';
 
 // Mock the livekit-server-sdk module
 jest.mock('livekit-server-sdk', () => {
@@ -135,6 +137,10 @@ describe('RoomsService', () => {
         email: resolvedata.email,
       });
     });
+
+    it('should throw error if fields is null', () => {
+
+    })
   });
 
   describe('findAll', () => {
@@ -150,29 +156,29 @@ describe('RoomsService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a room with creator and members', async () => {
-      const roomData = {
-        id: 'room-1',
-        roomname: 'test-room',
-        description: 'desc',
+    const roomData = {
+      id: 'room-1',
+      roomname: 'test-room',
+      description: 'desc',
+      isActive: true,
+      creator: {
+        id: 'creator-id',
+        email: 'creator@email.com',
+        username: 'creator',
         isActive: true,
-        creator: {
-          id: 'creator-id',
-          email: 'creator@email.com',
-          username: 'creator',
+      },
+      members: [
+        {
+          id: 'member-1',
+          email: 'member@email.com',
+          username: 'member',
           isActive: true,
         },
-        members: [
-          {
-            id: 'member-1',
-            email: 'member@email.com',
-            username: 'member',
-            isActive: true,
-          },
-        ],
-      };
-      mockRoomRepository.findOne.mockResolvedValue(roomData);
+      ],
+    };
 
+    it('should return a room with creator and members', async () => {
+      mockRoomRepository.findOne.mockResolvedValue(roomData);
       const result = await service.findOne('room-1');
 
       expect(mockRoomRepository.findOne).toHaveBeenCalledWith({
@@ -189,6 +195,14 @@ describe('RoomsService', () => {
       });
       expect(result).toEqual(roomData);
     });
+    it('when user is not found', async () => {
+      let findrooms = mockRoomRepository.findOne('id').mockResolvedValue(null)
+
+      const result = await service.findOne('id')
+
+      expect(findrooms).toHaveBeenCalled()
+      expect(result).rejects.toThrow(new HttpException('room not found', HttpStatus.NOT_FOUND))
+    })
   });
 
   describe('joinroom', () => {
@@ -222,6 +236,46 @@ describe('RoomsService', () => {
       );
       expect(result).toBe('test-generated-token');
     });
+
+    it('should throw error when user or room is not available', async () => {
+      const room = { id: 'room-1', roomname: 'test-room' };
+
+      mockRoomRepository.findOne.mockResolvedValueOnce(room as any);
+      mockUserRepository.findOne.mockResolvedValueOnce(null);
+
+      const result = await service.joinroom('user-1', 'test-room');
+
+      expect(mockRoomRepository.findOne).toHaveBeenCalledWith({
+        where: { roomname: 'test-room' },
+      });
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        relations: { groups: true },
+      });
+      expect(result).rejects.toThrow(new HttpException('such user or room not found', HttpStatus.NOT_FOUND))
+    })
+
+    it('should throw error when room is not available', async () => {
+      const user = {
+        id: 'user-1',
+        username: 'member1',
+        groups: [],
+      };
+
+      mockRoomRepository.findOne.mockResolvedValueOnce(null);
+      mockUserRepository.findOne.mockResolvedValueOnce(user);
+
+      const result = await service.joinroom('user-1', 'test-room');
+
+      expect(mockRoomRepository.findOne).toHaveBeenCalledWith({
+        where: { roomname: 'test-room' },
+      });
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        relations: { groups: true },
+      });
+      expect(result).rejects.toThrow(new HttpException('such user or room not found', HttpStatus.NOT_FOUND))
+    })
   });
 
   describe('remove', () => {
