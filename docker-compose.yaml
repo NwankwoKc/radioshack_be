@@ -1,0 +1,20 @@
+services:
+  database:
+    image: 'postgres:latest'
+    volumes:
+      - /home/kelechi/Desktop:/var/lib/postgresql
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRESPASSWORD}
+    networks:
+      - radio-net
+  backend:
+    image: 'radioshack_be:v1'
+    env_file:
+      - ./.env
+    environment:
+      - DATABASEURL=${DATABASEURL}
+    networks:
+      - radio-net
+networks:
+  radio-net:
+    external: true
