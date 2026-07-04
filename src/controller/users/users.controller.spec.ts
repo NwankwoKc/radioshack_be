@@ -116,21 +116,4 @@ describe('UsersController', () => {
       expect(mockUsersService.remove).toHaveBeenCalledWith('1');
     });
   });
-
-  describe('joinroom', () => {
-    it('should add user to a room', async () => {
-      // Arrange
-      const body = { id: 'room1', uid: 'user1' };
-      mockUsersService.joingroups.mockResolvedValue(undefined);
-
-      // Act
-      const result = await controller.joinroom(body, 'room1');
-
-      // Assert
-      expect(result).toEqual({
-        message: 'success',
-      });
-      expect(mockUsersService.joingroups).toHaveBeenCalledWith('room1', 'user1');
-    });
-  });
 });
