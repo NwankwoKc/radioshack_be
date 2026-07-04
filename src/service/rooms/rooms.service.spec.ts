@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomsService } from './rooms.service';
-import { Users } from 'src/model/users/users';
-import { Rooms } from 'src/model/rooms/rooms';
+import { Users } from '../../model/users/users';
+import { Rooms } from '../../model/rooms/rooms';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccessToken } from 'livekit-server-sdk';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { find } from 'rxjs';
-
+import { EnviromentserviceService } from '../enviromentservice/enviromentservice.service';
+import { ConfigService } from '@nestjs/config';
 // Mock the livekit-server-sdk module
 jest.mock('livekit-server-sdk', () => {
   const mockToJwt = jest.fn().mockResolvedValue('test-generated-token');
@@ -21,6 +21,7 @@ jest.mock('livekit-server-sdk', () => {
   });
   return { AccessToken: MockAccessToken };
 });
+
 
 describe('RoomsService', () => {
   let service: RoomsService;
@@ -70,19 +71,27 @@ describe('RoomsService', () => {
     save: jest.fn(),
     remove: jest.fn(),
   };
+  const mockenv = {
+    apikey: jest.fn().mockReturnValue('APIcFKT2xPzgpAA'),
+    secretekey: jest.fn().mockReturnValue('sTjspHnv47QvDi2o3RnMv13BkRCAkuzGOBeobhr2joB')
+  }
+
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RoomsService,
+        ConfigService,
         { provide: getRepositoryToken(Users), useValue: mockUserRepository },
         { provide: getRepositoryToken(Rooms), useValue: mockRoomRepository },
+        { provide: EnviromentserviceService, useValue: mockenv }
       ],
     }).compile();
 
     service = module.get<RoomsService>(RoomsService);
     userRepository = module.get(getRepositoryToken(Users));
     roomRepository = module.get(getRepositoryToken(Rooms));
+
 
     // Reset all mocks before each test
     jest.clearAllMocks();
@@ -196,12 +205,12 @@ describe('RoomsService', () => {
       expect(result).toEqual(roomData);
     });
     it('when user is not found', async () => {
-      let findrooms = mockRoomRepository.findOne('id').mockResolvedValue(null)
+      let findrooms = mockRoomRepository.findOne.mockResolvedValue(null)
 
-      const result = await service.findOne('id')
 
+      await expect(service.findOne('id')
+      ).rejects.toThrow(new HttpException('room not found', HttpStatus.NOT_FOUND))
       expect(findrooms).toHaveBeenCalled()
-      expect(result).rejects.toThrow(new HttpException('room not found', HttpStatus.NOT_FOUND))
     })
   });
 
@@ -243,8 +252,9 @@ describe('RoomsService', () => {
       mockRoomRepository.findOne.mockResolvedValueOnce(room as any);
       mockUserRepository.findOne.mockResolvedValueOnce(null);
 
-      const result = await service.joinroom('user-1', 'test-room');
 
+
+      await expect(service.joinroom('user-1', 'test-room')).rejects.toThrow(new HttpException('such user or room not found', HttpStatus.NOT_FOUND))
       expect(mockRoomRepository.findOne).toHaveBeenCalledWith({
         where: { roomname: 'test-room' },
       });
@@ -252,7 +262,6 @@ describe('RoomsService', () => {
         where: { id: 'user-1' },
         relations: { groups: true },
       });
-      expect(result).rejects.toThrow(new HttpException('such user or room not found', HttpStatus.NOT_FOUND))
     })
 
     it('should throw error when room is not available', async () => {
@@ -261,12 +270,9 @@ describe('RoomsService', () => {
         username: 'member1',
         groups: [],
       };
-
       mockRoomRepository.findOne.mockResolvedValueOnce(null);
       mockUserRepository.findOne.mockResolvedValueOnce(user);
-
-      const result = await service.joinroom('user-1', 'test-room');
-
+      await expect(service.joinroom('user-1', 'test-room')).rejects.toThrow(new HttpException('such user or room not found', HttpStatus.NOT_FOUND))
       expect(mockRoomRepository.findOne).toHaveBeenCalledWith({
         where: { roomname: 'test-room' },
       });
@@ -274,7 +280,6 @@ describe('RoomsService', () => {
         where: { id: 'user-1' },
         relations: { groups: true },
       });
-      expect(result).rejects.toThrow(new HttpException('such user or room not found', HttpStatus.NOT_FOUND))
     })
   });
 
@@ -299,8 +304,8 @@ describe('RoomsService', () => {
       const result = await service.createtoken('my-room', 'participant-name');
 
       expect(AccessToken).toHaveBeenCalledWith(
-        'APIcFKT2xPzgaddjk',
-        'sTjspHnv47QvDi2o3asdjseejkRnMv13BkRCAkuzGOBeobhr2joB',
+        'APIcFKT2xPzgpAA',
+        'sTjspHnv47QvDi2o3RnMv13BkRCAkuzGOBeobhr2joB',
         { identity: 'participant-name' },
       );
       // The token instance should have had grants added

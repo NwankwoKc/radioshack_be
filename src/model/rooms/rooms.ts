@@ -23,5 +23,3 @@ export class Rooms {
   @Column({ default: true })
   isActive: boolean;
 }
-
-
