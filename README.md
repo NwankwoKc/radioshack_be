@@ -131,11 +131,9 @@ src/
 - Feedback events are decoupled from the audio pipeline, ensuring low-latency streaming is unaffected by feedback traffic.
 
 ## API Documentation
-
-API documentation is available via Swagger once the app is running:
-
+API is available on Postman through this link below
 ```
-http://localhost:<PORT>/<API_DOCS_PATH>
+https://www.postman.com/solar-star-425396/workspace/radioshack
 ```
 
 ## WebSocket Events
