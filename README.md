@@ -56,7 +56,7 @@ Client (Broadcaster / Listener)
 ### 1. Clone the repository
 
 ```bash
-git clone <REPOSITORY_URL>
+git clone <https://github.com/NwankwoKc/radioshack_be.git>
 cd radioshack_be
 ```
 
@@ -159,8 +159,7 @@ npm run test
 | `npm run start:prod`      | Run compiled app                     |
 | `npm run lint`            | Lint codebase                        |
 | `npm run test`            | Run unit tests                       |
-| `npm run typeorm:migration:generate` | Generate a new migration |
-| `npm run typeorm:migration:run`      | Run pending migrations   |
+
 
 ## Contributing
 
