@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { UsersService } from 'src/service/users/users.service';
 import { UserResponseDto, CreateUserDto } from 'src/model/dto/user.dto';
-
+import { RoomsService } from 'src/service/rooms/rooms.service';
 
 export interface Responseinterface {
   message: string,
@@ -23,6 +23,7 @@ export class UsersController {
       data
     }
   }
+
   @Get(':id')
   async finduser(@Param('id') id: string) {
     const data = await this.userservice.finduser(id)
@@ -42,12 +43,5 @@ export class UsersController {
   @Delete(':id')
   async deleteuser(@Param('id') id: string) {
     return await this.userservice.remove(id)
-  }
-  @Post(':id')
-  async joinroom(@Body() body: updatebody, @Param('id') id: string) {
-    await this.userservice.joingroups(id, body.uid)
-    return {
-      message: "success"
-    }
   }
 }

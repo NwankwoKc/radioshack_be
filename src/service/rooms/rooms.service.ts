@@ -1,9 +1,9 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Rooms } from 'src/model/rooms/rooms';
+import { Rooms } from '../../model/rooms/rooms';
 import { Repository } from "typeorm"
 import { CreateRoomDto } from 'src/model/dto/room.dto';
-import { Users } from 'src/model/users/users';
+import { Users } from '../../model/users/users';
 import { UserResponseDto } from 'src/model/dto/user.dto';
 import { AccessToken, SIPGrant, VideoGrant } from 'livekit-server-sdk';
 import { RoomData } from 'src/utils/types';
@@ -57,7 +57,7 @@ export class RoomsService {
     return await this.roomsRepository.find();
   }
 
-  async findOne(id: string): Promise<RoomData | null> {
+  async findOne(id: string): Promise<RoomData> {
 
     const data = await this.roomsRepository.findOne({
       where: { id },
@@ -84,8 +84,12 @@ export class RoomsService {
         members: true
       }
     })
-    if (!data) throw new HttpException('room not found', HttpStatus.NOT_FOUND)
-    return data
+    if (data) {
+      return data
+    } else {
+
+      throw new HttpException('room not found', HttpStatus.NOT_FOUND)
+    }
   }
   async joinroom(id: string, roomname: string | undefined): Promise<string> {
     const room = await this.roomsRepository.findOne({
@@ -114,9 +118,9 @@ export class RoomsService {
 
   async remove(id: string): Promise<void> {
     const room = await this.roomsRepository.findOne({
-      where: { id: id },
-      relations: { creator: true }
+      where: { id: id }
     })
+    console.log(room)
     if (room) await this.roomsRepository.remove(room)
   }
   async createtoken(roomname: string, participantname: string): Promise<string> {

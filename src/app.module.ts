@@ -7,7 +7,8 @@ import { WsService } from './service/ws/ws.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomsModule } from './model/rooms/rooms.module';
 import { UsersModule } from './model/users/users.module';
-
+import Auth from './controller/users/auth';
+import { UsersService } from './service/users/users.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,7 +24,7 @@ import { UsersModule } from './model/users/users.module';
     RoomsModule,
     UsersModule
   ],
-  controllers: [AppController],
-  providers: [AppService, ChatGateway, WsService],
+  controllers: [AppController, Auth],
+  providers: [AppService, ChatGateway, WsService, UsersService],
 })
 export class AppModule { }

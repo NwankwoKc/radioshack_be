@@ -7,9 +7,9 @@ import { LoginDto } from "src/model/dto/user.dto";
 class Auth {
   constructor(private userservice: UsersService) { }
   @Post()
-  login(@Body() body: LoginDto) {
-    const data = this.userservice.login(body)
-
+  async login(@Body() body: LoginDto) {
+    const data = await this.userservice.login(body)
+    console.log(data)
     return {
       message: "success",
       data

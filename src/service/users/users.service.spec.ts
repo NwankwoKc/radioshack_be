@@ -1,12 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
-import { Users } from 'src/model/users/users';
+import { Users } from '../../model/users/users';
 import { Repository } from 'typeorm';
-import { Rooms } from 'src/model/rooms/rooms';
+import { Rooms } from '../../model/rooms/rooms';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt'
 import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+type responsedata = {
+  username: string,
+  id: string,
+  email: string,
+  isActive: boolean
+}
 
+
+jest.mock('bcrypt')
 describe('UsersService', () => {
   const resolvedata = {
     id: 'id',
@@ -18,8 +26,7 @@ describe('UsersService', () => {
     password: 'helloworld !!! luremipsum'
   }
 
-  const resolveduser =
-  {
+  const resolveduser = {
     id: "id",
     username: "username",
     email: "nkelechi21@gmail.com",
@@ -37,11 +44,13 @@ describe('UsersService', () => {
     members: [],
     creator: resolvedata
   }
+
   const body = {
     "username": "nwankwokce",
     "password": "12345678",
     "email": "nkelechi23@gmail.com"
   }
+
   const loginbody = {
     "password": "1234568",
     "email": "nkelechi21@gmail.com"
@@ -52,17 +61,17 @@ describe('UsersService', () => {
   let roomRepository: jest.Mocked<Repository<Rooms>>;
 
   const mockUserRepository = {
-    findOneBy: jest.fn().mockResolvedValue(() => Promise.resolve([''])),
-    create: jest.fn().mockResolvedValue(() => Promise.resolve(resolvedata)),
-    findOne: jest.fn().mockResolvedValue(() => Promise.resolve(resolvedata)),
+    findOneBy: jest.fn(),
+    find: jest.fn(),
+    create: jest.fn(),
+    findOne: jest.fn(),
     delete: jest.fn(),
-    save: jest.fn().mockResolvedValue(() => Promise.resolve(resolvedata)),
+    save: jest.fn(),
   };
 
   const mockRoomRepository = {
-    findOne: jest.fn().mockResolvedValue(() => Promise.resolve(resolveroomdata)),
+    findOne: jest.fn(),
   };
-
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -82,119 +91,130 @@ describe('UsersService', () => {
     userRepository = module.get(getRepositoryToken(Users));
     roomRepository = module.get(getRepositoryToken(Rooms));
   });
+
   afterEach(() => {
-    jest.resetAllMocks()
+    jest.clearAllMocks();
   })
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
   describe('createuser', () => {
     it('when create user is successful', async () => {
-      jest.spyOn(bcrypt, 'hash').mockImplementation((pass: string, salt: number) => Promise.resolve('hashedpassword'))
-      userRepository.findOneBy.mockResolvedValue(null)
-      userRepository.save.mockResolvedValue(resolvedata)
+      const responsedata = {
+        username: resolvedata.username,
+        id: resolvedata.id,
+        email: resolvedata.email,
+        isActive: resolvedata.isActive
+      }
+      const hashimoto = "dosi9s09ds0uud90sd0jjs"
+      jest.spyOn(bcrypt, 'hash').mockImplementation(() => Promise.resolve(hashimoto))
+      userRepository.findOneBy.mockResolvedValue(null);
+      userRepository.save.mockResolvedValue({
+        ...resolvedata,
+        password: hashimoto
+      });
 
-      let signup = await service.createuser(body)
+      let signup = await service.createuser(body);
 
-      expect(userRepository.findOne).toHaveBeenCalled()
-      expect(userRepository.save).toHaveBeenCalled()
-      expect(bcrypt.hash).toHaveBeenCalled()
-      expect(bcrypt.hash).toHaveBeenCalledWith(body.password, 12)
-      expect(signup).toEqual(resolveduser)
-    })
+      expect(userRepository.findOneBy).toHaveBeenCalled();
+      expect(userRepository.save).toHaveBeenCalled();
+      expect(bcrypt.hash).toHaveBeenCalled();
+      expect(bcrypt.hash).toHaveBeenCalledWith(body.password, 12);
+      expect(signup).toEqual(responsedata);
+    });
+
     it('if user with email already exist', async () => {
-      userRepository.findOneBy.mockResolvedValue(resolvedata)
+      userRepository.findOneBy.mockResolvedValue(resolvedata);
 
-      let signup = await service.createuser(body)
-      expect(userRepository).toHaveBeenCalledWith({
+      await expect(service.createuser(body)).rejects.toThrow(
+        new ConflictException('User with this email already exists')
+      );
+
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({
         email: body.email
-      })
-      expect(signup).toThrow(new ConflictException('User with this email already exists'))
-    })
+      });
+    });
+  });
 
-  })
   describe('finduser', () => {
-    it('when finduser is successful', () => {
-      const id = "111333id"
-      let mockedval = { ...resolvedata, password: "anythingpassword" }
-      userRepository.findOne.mockResolvedValue(mockedval)
+    it('when finduser is successful', async () => {
+      const id = "111333id";
+      let mockedval = { ...resolvedata, password: "anythingpassword" };
+      userRepository.findOne.mockResolvedValue(mockedval);
 
-      let getuser = service.finduser(id)
+      let getuser = await service.finduser(id);
 
-      expect(userRepository.findOne).toHaveBeenCalled()
-      expect(getuser).toEqual(resolvedata)
-    })
+      expect(userRepository.findOne).toHaveBeenCalled();
+      expect(getuser).toEqual(resolveduser);
+    });
 
-    it('when usernot successful', () => {
-      const id = "111333id"
-      userRepository.findOne.mockResolvedValue(null)
+    it('when user not found', async () => {
+      const id = "111333id";
+      userRepository.findOne.mockResolvedValue(null);
 
-      let getuser = service.finduser(id)
-      expect(userRepository.findOne).toHaveBeenCalled()
+      await expect(service.finduser(id)).rejects.toThrow(
+        new NotFoundException('usernotfound')
+      );
+
+      expect(userRepository.findOne).toHaveBeenCalled();
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: { id },
         relations: {
           groups: true,
           createdgroups: true
         }
-      })
-      expect(getuser).toThrow(new NotFoundException('usernotfound')
-      )
-    })
-  })
+      });
+    });
+  });
 
   describe('remove', () => {
-    it('when remove user is successful', () => {
-      let id = "123dkdk"
-      let remove = service.remove(id)
-      expect(userRepository.remove).toHaveBeenCalled()
-    })
+    it('when remove user is successful', async () => {
+      let id = "123dkdk";
 
-  })
+      await service.remove(id);
+
+      expect(userRepository.delete).toHaveBeenCalled();
+      expect(userRepository.delete).toHaveBeenCalledWith(id);
+    });
+  });
+
   describe('login', () => {
-    it('when login is successful', () => {
-      jest.spyOn(bcrypt, 'compare').mockImplementation((bodypassword: string, resolvepassword: string) => true)
+    it('when login is successful', async () => {
+      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+      userRepository.findOneBy.mockResolvedValue(resolvedata);
 
-      userRepository.findOneBy.mockResolvedValue(resolvedata)
+      let login = await service.login(loginbody);
 
-      let login = service.login(loginbody)
+      expect(bcrypt.compare).toHaveBeenCalled();
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password);
+      expect(login).toEqual(resolveduser);
+    });
 
-      expect(bcrypt.compare).toHaveBeenCalled()
-      expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password)
-      expect(login).toEqual(resolveduser)
-    })
+    it('when email does not exist', async () => {
+      userRepository.findOneBy.mockResolvedValue(null);
 
-    it('when email does not exist', () => {
-      jest.spyOn(bcrypt, 'compare').mockImplementation((bodypassword: string, resolvepassword: string) => true)
-      userRepository.findOneBy.mockResolvedValue(null)
+      await expect(service.login(loginbody)).rejects.toThrow(
+        new BadRequestException("email does not exist")
+      );
 
-      let login = service.login(loginbody)
-
-      expect(userRepository.findOne).toHaveBeenCalled()
-      expect(userRepository.findOne).toHaveBeenCalledWith({
+      expect(userRepository.findOneBy).toHaveBeenCalled();
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({
         email: loginbody.email
-      })
-      expect(login).toThrow(new BadRequestException("email does not exist"))
-    })
+      });
+    });
 
-    it('when password is incorrect', () => {
-      jest.spyOn(bcrypt, 'compare').mockImplementation((bodypassword: string, resolvepassword: string) => false)
-      userRepository.findOneBy.mockResolvedValue(resolvedata)
+    it('when password is incorrect', async () => {
+      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(false));
+      userRepository.findOneBy.mockResolvedValue(resolvedata);
 
-      let login = service.login(loginbody)
+      await expect(service.login(loginbody)).rejects.toThrow(
+        new ConflictException("password is incorrect")
+      );
 
-      expect(bcrypt.compare).toHaveBeenCalled()
-      expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password)
-      expect(login).toThrow(new ConflictException("password is incorrect")
-      )
-    })
-  })
-
-  describe('joingroup', () => {
-    it('when joingroup is successful', () => {
-      roomRepository.findOne.mockResolvedValue(resolveroomdata)
-      userRepository.findOne.mockResolvedValue(resolvedata)
-    })
-  })
+      expect(bcrypt.compare).toHaveBeenCalled();
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password);
+    });
+  });
 });
