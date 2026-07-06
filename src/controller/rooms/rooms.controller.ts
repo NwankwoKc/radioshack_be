@@ -7,9 +7,10 @@ export class RoomsController {
   constructor(private roomservice: RoomsService) { }
   @Post()
   async createroom(@Body() body: CreateRoomDto) {
-    await this.roomservice.createroom(body)
+    const data = await this.roomservice.createroom(body)
     return {
-      message: "rooom succefully created"
+      message: "rooom succefully created",
+      data
     }
   }
   @Get()

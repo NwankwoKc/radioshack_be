@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rooms } from '../../model/rooms/rooms';
 import { Repository } from "typeorm"
-import { CreateRoomDto } from '../../model/dto/room.dto';
+import { CreateRoomDto, RoomResponseDto } from '../../model/dto/room.dto';
 import { Users } from '../../model/users/users';
 import { UserResponseDto } from '../..//model/dto/user.dto';
 import { AccessToken, SIPGrant, VideoGrant } from 'livekit-server-sdk';
@@ -21,7 +21,7 @@ export class RoomsService {
   ) { }
 
 
-  async createroom(body: CreateRoomDto): Promise<UserResponseDto> {
+  async createroom(body: CreateRoomDto): Promise<RoomResponseDto> {
     if (body.creatorId == null) {
       throw new HttpException("User is not logged in", HttpStatus.BAD_REQUEST)
     }
@@ -47,9 +47,9 @@ export class RoomsService {
     console.log(save)
     return {
       id: save.id,
-      isActive: save.isActive,
-      username: save.username,
-      email: save.email
+      roomname: save.roomname,
+      description: save.description,
+      isActive: save.isActive
     }
   }
 
