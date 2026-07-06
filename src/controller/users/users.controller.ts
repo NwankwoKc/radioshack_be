@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
-import { UsersService } from 'src/service/users/users.service';
-import { UserResponseDto, CreateUserDto } from 'src/model/dto/user.dto';
-import { RoomsService } from 'src/service/rooms/rooms.service';
+import { UsersService } from '../../service/users/users.service';
+import { UserResponseDto, CreateUserDto } from '../../model/dto/user.dto';
 
 export interface Responseinterface {
   message: string,

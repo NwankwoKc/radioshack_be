@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from '../../model/users/users';
 import { Repository } from "typeorm"
 import * as bcrypt from 'bcrypt'
-import { CreateUserDto, LoginDto } from 'src/model/dto/user.dto';
+import { CreateUserDto, LoginDto } from '../../model/dto/user.dto';
 import { Rooms } from "../../model/rooms/rooms"
-import { userdetailresponse, userResponse } from 'src/utils/types';
+import { userdetailresponse, userResponse } from '../../utils/types';
 import { HttpException } from '@nestjs/common';
 import { Http2ServerResponse } from 'node:http2';
 
