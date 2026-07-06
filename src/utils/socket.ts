@@ -9,7 +9,7 @@ import {
   OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { WsService } from 'src/service/ws/ws.service';
+import { WsService } from '../service/ws/ws.service';
 @WebSocketGateway({
   cors: {
     origin: '*',

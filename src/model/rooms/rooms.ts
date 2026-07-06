@@ -14,9 +14,7 @@ export class Rooms {
   @Column()
   description: string;
 
-  @ManyToOne(() => Users, users => users.createdgroups, {
-    cascade: ["insert", "remove"]
-  })
+  @ManyToOne(() => Users, users => users.createdgroups,)
   @JoinColumn({ name: 'creatorId' })
   creator: Users
 

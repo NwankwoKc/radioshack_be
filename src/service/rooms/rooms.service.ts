@@ -2,11 +2,11 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rooms } from '../../model/rooms/rooms';
 import { Repository } from "typeorm"
-import { CreateRoomDto } from 'src/model/dto/room.dto';
+import { CreateRoomDto } from '../../model/dto/room.dto';
 import { Users } from '../../model/users/users';
-import { UserResponseDto } from 'src/model/dto/user.dto';
+import { UserResponseDto } from '../..//model/dto/user.dto';
 import { AccessToken, SIPGrant, VideoGrant } from 'livekit-server-sdk';
-import { RoomData } from 'src/utils/types';
+import { RoomData } from '../../utils/types';
 import { HttpException } from '@nestjs/common';
 import { EnviromentserviceService } from '../enviromentservice/enviromentservice.service';
 
