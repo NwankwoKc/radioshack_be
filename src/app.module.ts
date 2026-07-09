@@ -24,7 +24,7 @@ import { UsersService } from './service/users/users.service';
     RoomsModule,
     UsersModule
   ],
-  controllers: [AppController, Auth],
+  controllers: [AppController],
   providers: [AppService, ChatGateway, WsService, UsersService],
 })
 export class AppModule { }
