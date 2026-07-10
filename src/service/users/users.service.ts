@@ -7,15 +7,15 @@ import { CreateUserDto, LoginDto } from '../../model/dto/user.dto';
 import { Rooms } from "../../model/rooms/rooms"
 import { userdetailresponse, userResponse } from '../../utils/types';
 import { HttpException } from '@nestjs/common';
-import { Http2ServerResponse } from 'node:http2';
-
+import { AuthserviceService } from '../auth/authservice/authservice.service';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users)
     private userrepository: Repository<Users>,
     @InjectRepository(Rooms)
-    private roomrepository: Repository<Rooms>
+    private roomrepository: Repository<Rooms>,
+    private authservice: AuthserviceService
   ) { }
 
   async createuser(body: CreateUserDto): Promise<userResponse> {
@@ -33,11 +33,13 @@ export class UsersService {
     this.userrepository.create(bd)
     const data = await this.userrepository.save(bd)
     console.log(data)
+    const token = await this.authservice.singin(data.username, data.password)
     return {
       username: data.username,
       id: data.id,
       email: data.email,
       isActive: data.isActive,
+      token: token.accesstoken
     }
   }
 
@@ -87,14 +89,15 @@ export class UsersService {
 
     const isPasswordValid = await bcrypt.compare(body.password, check.password)
     if (!isPasswordValid) throw new ConflictException("password is incorrect")
-
+    const token = await this.authservice.singin(check.username, check.password)
     return {
       id: check.id,
       username: check.username,
       email: check.email,
       groups: check.groups,
       createdgroups: check.createdgroups,
-      isActive: check.isActive
+      isActive: check.isActive,
+      token: token.accesstoken
     }
   }
 }

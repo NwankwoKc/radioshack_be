@@ -16,4 +16,7 @@ export class EnviromentserviceService {
   secretekey(): string | undefined {
     return this.configservice.get<string>('SECRETEKEY')
   }
+  jwtsecrete(): string | undefined {
+    return this.configservice.get("JWTSECRETE")
+  }
 }

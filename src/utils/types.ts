@@ -3,6 +3,7 @@ export interface userResponse {
   email: string,
   isActive: boolean,
   id: string,
+  token?: string
 }
 export interface userdetailresponse extends userResponse {
   groups: roomResponse[],
