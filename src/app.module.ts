@@ -7,8 +7,8 @@ import { WsService } from './service/ws/ws.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomsModule } from './model/rooms/rooms.module';
 import { UsersModule } from './model/users/users.module';
-import Auth from './controller/users/auth';
 import { UsersService } from './service/users/users.service';
+import { Authmodule } from './service/auth/authservice/authmodule.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,6 +21,7 @@ import { UsersService } from './service/users/users.service';
       logging: true,
       autoLoadEntities: true
     }),
+    Authmodule,
     RoomsModule,
     UsersModule
   ],

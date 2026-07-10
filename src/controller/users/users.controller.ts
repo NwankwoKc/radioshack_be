@@ -1,6 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { UsersService } from '../../service/users/users.service';
 import { UserResponseDto, CreateUserDto } from '../../model/dto/user.dto';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../service/auth/authservice/auth.guard';
+
 
 export interface Responseinterface {
   message: string,
@@ -14,6 +17,8 @@ type updatebody = {
 @Controller('users')
 export class UsersController {
   constructor(private userservice: UsersService) { }
+
+  @UseGuards(AuthGuard)
   @Get()
   async getusers() {
     const data = await this.userservice.getusers()
@@ -23,6 +28,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   async finduser(@Param('id') id: string) {
     const data = await this.userservice.finduser(id)
@@ -39,6 +45,9 @@ export class UsersController {
       data
     }
   }
+
+
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async deleteuser(@Param('id') id: string) {
     return await this.userservice.remove(id)
