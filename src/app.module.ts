@@ -21,11 +21,10 @@ import { Authmodule } from './service/auth/authservice/authmodule.module';
       logging: true,
       autoLoadEntities: true
     }),
-    Authmodule,
     RoomsModule,
     UsersModule
   ],
   controllers: [AppController],
-  providers: [AppService, ChatGateway, WsService, UsersService],
+  providers: [AppService, ChatGateway, WsService],
 })
 export class AppModule { }
