@@ -52,8 +52,8 @@ export class RoomsController {
 
   @UseGuards(AuthGuard)
   @Post("joinroom/:id")
-  joinroom(@Param('id') id: string, @Body() body: UpdateRoomDto) {
-    const data = this.roomservice.joinroom(id, body.roomname)
+  async joinroom(@Param('id') id: string, @Body() body: UpdateRoomDto) {
+    const data = await this.roomservice.joinroom(id, body.roomname)
     return {
       message: "success",
       data

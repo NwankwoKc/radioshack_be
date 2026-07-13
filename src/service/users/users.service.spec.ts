@@ -6,6 +6,8 @@ import { Rooms } from '../../model/rooms/rooms';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt'
 import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { AuthserviceService } from '../auth/authservice/authservice.service';
+
 type responsedata = {
   username: string,
   id: string,
@@ -39,6 +41,7 @@ describe('UsersService', () => {
     id: '1234567',
     roomname: 'default name',
     description: 'default description',
+
     isActive: true,
     creatorid: '1234567',
     members: [],
@@ -55,7 +58,6 @@ describe('UsersService', () => {
     "password": "1234568",
     "email": "nkelechi21@gmail.com"
   }
-
   let service: UsersService;
   let userRepository: jest.Mocked<Repository<Users>>;
   let roomRepository: jest.Mocked<Repository<Rooms>>;
@@ -73,6 +75,10 @@ describe('UsersService', () => {
     findOne: jest.fn(),
   };
 
+  const mockauthservice = {
+    signin: jest.fn().mockResolvedValue("token")
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [UsersService,
@@ -84,12 +90,21 @@ describe('UsersService', () => {
           provide: getRepositoryToken(Rooms),
           useValue: mockRoomRepository
         },
+        {
+          provide: AuthserviceService,
+          useValue: mockauthservice
+        }
+
       ]
     }).compile();
 
     service = module.get<UsersService>(UsersService);
     userRepository = module.get(getRepositoryToken(Users));
     roomRepository = module.get(getRepositoryToken(Rooms));
+    let authserve = module.get(AuthserviceService)
+    jest.spyOn(authserve, 'signin').mockResolvedValue({
+      accesstoken: "token"
+    })
   });
 
   afterEach(() => {
@@ -106,7 +121,8 @@ describe('UsersService', () => {
         username: resolvedata.username,
         id: resolvedata.id,
         email: resolvedata.email,
-        isActive: resolvedata.isActive
+        isActive: resolvedata.isActive,
+        token: 'token'
       }
       const hashimoto = "dosi9s09ds0uud90sd0jjs"
       jest.spyOn(bcrypt, 'hash').mockImplementation(() => Promise.resolve(hashimoto))
@@ -189,7 +205,10 @@ describe('UsersService', () => {
 
       expect(bcrypt.compare).toHaveBeenCalled();
       expect(bcrypt.compare).toHaveBeenCalledWith(loginbody.password, resolvedata.password);
-      expect(login).toEqual(resolveduser);
+      expect(login).toEqual({
+        ...resolveduser,
+        token: "token"
+      });
     });
 
     it('when email does not exist', async () => {

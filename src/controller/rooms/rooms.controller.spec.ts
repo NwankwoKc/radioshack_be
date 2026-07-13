@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomsController } from './rooms.controller';
 import { RoomsService } from '../../service/rooms/rooms.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('RoomsController', () => {
   let controller: RoomsController;
@@ -31,12 +32,23 @@ describe('RoomsController', () => {
     members: [],
     creator: resolvedata
   }
+  const mockjwtservice = {
+    verifyAsync: jest.fn().mockImplementation((data: string) => {
+      return {
+        name: "name",
+        email: "email"
+      }
+    })
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoomsController],
       providers: [{
-        provide: RoomsService, useValue: roomservicemock
+        provide: RoomsService, useValue: roomservicemock,
+      },
+      {
+        provide: JwtService, useValue: mockjwtservice
       }]
     }).compile();
 
@@ -50,21 +62,30 @@ describe('RoomsController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('getrooms', () => {
+  it('getrooms', async () => {
     const find = jest.spyOn(roomsservice, 'findAll').mockResolvedValue([mockgetallroom])
-    const result = controller.getrooms()
+    const result = await controller.getrooms()
     expect(find).toHaveBeenCalled()
     expect(result).toEqual({
-      message: 'success',
-      mockgetallroom
+      message: 'sucess',
+      data: [{
+        id: 'id',
+        roomname: 'roomname',
+        description: 'desciption',
+        isActive: true,
+        creatorid: 'creatorid',
+        members: [],
+        creator: resolvedata
+
+      }]
     })
   })
 
-  it('getroombyid', () => {
+  it('getroombyid', async () => {
     const id = '123'
     let find = jest.spyOn(roomsservice, 'findOne').mockResolvedValue(mockgetallroom)
 
-    let result = controller.getroombyid(id)
+    let result = await controller.getroombyid(id)
 
     expect(find).toHaveBeenCalled()
     expect(find).toHaveBeenCalledWith(id)
@@ -86,13 +107,13 @@ describe('RoomsController', () => {
       message: 'success'
     })
   })
-  it('joinroom', () => {
+  it('joinroom', async () => {
     const id = '123'
     const body = {
       roomname: 'roomname'
     }
     let join = jest.spyOn(roomsservice, 'joinroom').mockResolvedValue('token')
-    let result = controller.joinroom(id, body)
+    let result = await controller.joinroom(id, body)
 
     expect(join).toHaveBeenCalledWith(id, body.roomname)
     expect(result).toEqual({
@@ -101,15 +122,15 @@ describe('RoomsController', () => {
     })
   })
 
-  it('createtoken', () => {
+  it('createtoken', async () => {
     const body = {
-      roomname: 'roomname',
-      participantid: 'participantid'
+      room_name: 'roomname',
+      participant_identity: 'participantid'
     }
-    let join = jest.spyOn(roomsservice, 'joinroom').mockResolvedValue('token')
-    let result = controller.createtoken(body)
+    let join = jest.spyOn(roomsservice, 'createtoken').mockResolvedValue('token')
+    let result = await controller.createtoken(body)
 
-    expect(join).toHaveBeenCalledWith(body.roomname, body.participantid)
+    expect(join).toHaveBeenCalledWith(body.room_name, body.participant_identity)
     expect(result).toEqual({
       message: 'success',
       data: 'token'

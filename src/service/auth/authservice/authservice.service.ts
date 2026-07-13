@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { Users } from 'src/model/users/users';
+import { Users } from '../../../model/users/users';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EnviromentserviceService } from 'src/service/enviromentservice/enviromentservice.service';
+import { EnviromentserviceService } from '../../../service/enviromentservice/enviromentservice.service';
 
 @Injectable()
 export class AuthserviceService {
@@ -15,7 +15,7 @@ export class AuthserviceService {
   ) { }
 
 
-  async singin(username: string, pass: string): Promise<{ accesstoken: string }> {
+  async signin(username: string, pass: string): Promise<{ accesstoken: string }> {
     const user = await this.userrepository.findOne({
       where: {
         username
