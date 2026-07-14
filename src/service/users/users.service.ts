@@ -83,7 +83,7 @@ export class UsersService {
 
   async login(body: LoginDto): Promise<userdetailresponse | null> {
     if (!body.password) throw new HttpException('password field is empty', HttpStatus.BAD_REQUEST)
-    if (!body.email) throw new HttpException(' email field is empty', HttpStatus.BAD_REQUEST)
+    if (!body.email) throw new HttpException('email field is empty', HttpStatus.BAD_REQUEST)
     const check = await this.userrepository.findOneBy({ email: body.email })
     if (!check) throw new BadRequestException("email does not exist")
 

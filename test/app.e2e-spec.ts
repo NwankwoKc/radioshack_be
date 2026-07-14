@@ -70,6 +70,20 @@ describe('AppController (e2e)', () => {
         .expect(400)
         .expect({
           "statusCode": 400,
+          "message": "email field is empty"
+        })
+    })
+    it('if password data type is number instead of string', async () => {
+      const loginbody = {
+        email: "nkelechi21@gmail.com",
+        password: 122383884498484
+      }
+      return request(app.getHttpServer())
+        .post('/auth')
+        .send(loginbody)
+        .expect(400)
+        .expect({
+          "statusCode": 400,
           "error": "Bad Request",
           "message": "email does not exist"
         })
