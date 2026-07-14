@@ -10,7 +10,8 @@ import {
   IsNotEmpty,
   IsInt,
   Min,
-  Max
+  Max,
+  isNotEmpty
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -18,14 +19,17 @@ export class CreateRoomDto {
   @IsString()
   @MinLength(3)
   @MaxLength(50)
+  @IsNotEmpty({ message: 'roomname is required' })
   roomname: string;
 
   @IsString()
   @MinLength(5)
   @MaxLength(200)
+  @IsNotEmpty({ message: 'description is required' })
   description: string;
 
   @IsUUID()
+  @IsNotEmpty({ message: 'creatorid is required' })
   creatorId: string;
 }
 
