@@ -32,8 +32,7 @@ export class UsersService {
     }
     this.userrepository.create(bd)
     const data = await this.userrepository.save(bd)
-    console.log(data)
-    const token = await this.authservice.singin(data.username, data.password)
+    const token = await this.authservice.signin(data.username, data.password)
     return {
       username: data.username,
       id: data.id,
@@ -84,12 +83,13 @@ export class UsersService {
 
   async login(body: LoginDto): Promise<userdetailresponse | null> {
     if (!body.password) throw new HttpException('password field is empty', HttpStatus.BAD_REQUEST)
+    if (!body.email) throw new HttpException('email field is empty', HttpStatus.BAD_REQUEST)
     const check = await this.userrepository.findOneBy({ email: body.email })
     if (!check) throw new BadRequestException("email does not exist")
 
     const isPasswordValid = await bcrypt.compare(body.password, check.password)
     if (!isPasswordValid) throw new ConflictException("password is incorrect")
-    const token = await this.authservice.singin(check.username, check.password)
+    const token = await this.authservice.signin(check.username, check.password)
     return {
       id: check.id,
       username: check.username,

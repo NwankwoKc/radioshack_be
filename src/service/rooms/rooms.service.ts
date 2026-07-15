@@ -34,6 +34,8 @@ export class RoomsService {
         isActive: true
       }
     })
+    console.log("creator", creator)
+    console.log(body.roomname, body.description)
     let data: any
     if (creator) {
       data = this.roomsRepository.create({
@@ -124,7 +126,9 @@ export class RoomsService {
     if (room) await this.roomsRepository.remove(room)
   }
   async createtoken(roomname: string, participantname: string): Promise<string> {
-
+    if (!roomname || !participantname) {
+      throw new HttpException("either roomaname or participantname is unavailable", HttpStatus.BAD_REQUEST)
+    }
     const roomName = roomname;
     const creatorName = participantname;
 
@@ -136,9 +140,7 @@ export class RoomsService {
 
     at.addGrant(videoGrant);
     at.addSIPGrant(sipGrant)
-    console.log(at)
     const token = await at.toJwt();
-    console.log(token)
     return token
   }
 }

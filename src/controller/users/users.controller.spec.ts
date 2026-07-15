@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from '../../service/users/users.service';
 import { CreateUserDto } from '../../model/dto/user.dto';
-
+import { AuthGuard } from '../../service/auth/authservice/auth.guard';
+import { JwtService } from '@nestjs/jwt';
 describe('UsersController', () => {
   let controller: UsersController;
   let userservice: UsersService;
@@ -28,6 +29,18 @@ describe('UsersController', () => {
     joingroups: jest.fn(),
   };
 
+  const mockauthguard = {
+    canActivate: jest.fn().mockReturnValue(true)
+  }
+  const mockjwtservice = {
+    verifyAsync: jest.fn().mockImplementation((data: string) => {
+      return {
+        name: "name",
+        email: "email"
+      }
+    })
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -36,6 +49,14 @@ describe('UsersController', () => {
           provide: UsersService,
           useValue: mockUsersService,
         },
+        {
+          provide: JwtService,
+          useValue: mockjwtservice
+        },
+        {
+          provide: AuthGuard,
+          useValue: mockauthguard
+        }, JwtService
       ],
     }).compile();
 

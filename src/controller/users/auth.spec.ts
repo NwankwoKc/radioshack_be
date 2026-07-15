@@ -25,7 +25,7 @@ describe('RoomsController', () => {
   })
 
 
-  it('login', () => {
+  it('login', async () => {
     const body = {
       email: 'email',
       password: 'password'
@@ -41,7 +41,7 @@ describe('RoomsController', () => {
     }
 
     const data = jest.spyOn(userservice, 'login').mockResolvedValue(mockedresponse)
-    const login = controller.login(body)
+    const login = await controller.login(body)
     expect(data).toHaveBeenCalled()
     expect(data).toHaveBeenCalledWith(body)
     expect(login).toEqual({

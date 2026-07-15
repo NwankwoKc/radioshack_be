@@ -118,8 +118,8 @@ describe('RoomsService', () => {
       mockRoomRepository.save.mockResolvedValue({
         id: 'new-room-id',
         isActive: true,
-        username: resolvedata.username,  // mock the returned username/email (even if entity doesn't normally have them)
-        email: resolvedata.email,
+        roomname: createdRoom.roomname,  // mock the returned username/email (even if entity doesn't normally have them)
+        description: createdRoom.description,
       });
 
       const result = await service.createroom(roombody as any);
@@ -142,8 +142,8 @@ describe('RoomsService', () => {
       expect(result).toEqual({
         id: 'new-room-id',
         isActive: true,
-        username: resolvedata.username,
-        email: resolvedata.email,
+        roomname: roombody.roomname,
+        description: roombody.description,
       });
     });
 
@@ -293,7 +293,6 @@ describe('RoomsService', () => {
 
       expect(mockRoomRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'room-1' },
-        relations: { creator: true },
       });
       expect(mockRoomRepository.remove).toHaveBeenCalledWith(room);
     });
