@@ -204,7 +204,7 @@ describe('AppController (e2e)', () => {
 
     it("DELETE /rooms/:id - should delete a room", async () => {
       const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIkMmIkMTIkMVpSeUx2a3N4VTUva1I0M0dhZjF6dU9kQS5SdnJKSEtDQ1d1bC5HRzIzLk9BbkE3TjFrTmEiLCJ1c2VybmFtZSI6Im53YW5rd29rY2UiLCJpYXQiOjE3ODQwMzI1MjYsImV4cCI6NC45MDAwMDAwMDAwMDAwMTg0ZSsyM30.UH3H8-ez3GUoUAkFgneOtbe03JiPLnUzDdPxTNLA6Ng"
-      const roomId = "room-to-delete-id" // Replace with a deletable room ID
+      const roomId = "08a416cc-6462-4407-b0d9-9868289ed140"
 
       return request(app.getHttpServer())
         .delete(`/rooms/${roomId}`)
@@ -294,6 +294,109 @@ describe('AppController (e2e)', () => {
             "statusCode": 401
           })
       }
+    })
+  })
+
+  describe("users", () => {
+
+    it('get all users expect statusCode 200', async () => {
+      const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIkMmIkMTIkMVpSeUx2a3N4VTUva1I0M0dhZjF6dU9kQS5SdnJKSEtDQ1d1bC5HRzIzLk9BbkE3TjFrTmEiLCJ1c2VybmFtZSI6Im53YW5rd29rY2UiLCJpYXQiOjE3ODQwMzI1MjYsImV4cCI6NC45MDAwMDAwMDAwMDAwMTg0ZSsyM30.UH3H8-ez3GUoUAkFgneOtbe03JiPLnUzDdPxTNLA6Ng"
+      return request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200)
+    })
+
+    it('check if get all users route is a protected route', async () => {
+      return request(app.getHttpServer())
+        .get('/users')
+        .expect(401)
+        .expect({
+          "message": "Unauthorized",
+          "statusCode": 401
+        })
+    })
+
+    it('get specific users expect statusCode 200', async () => {
+      const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIkMmIkMTIkMVpSeUx2a3N4VTUva1I0M0dhZjF6dU9kQS5SdnJKSEtDQ1d1bC5HRzIzLk9BbkE3TjFrTmEiLCJ1c2VybmFtZSI6Im53YW5rd29rY2UiLCJpYXQiOjE3ODQwMzI1MjYsImV4cCI6NC45MDAwMDAwMDAwMDAwMTg0ZSsyM30.UH3H8-ez3GUoUAkFgneOtbe03JiPLnUzDdPxTNLA6Ng"
+      return request(app.getHttpServer())
+        .get('/users/048f18bd-14e4-4447-944a-7512c63b7d13')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200)
+    })
+
+    it('check if get specific users route is a protected route', async () => {
+      return request(app.getHttpServer())
+        .get('/users/f7a3e8d1-9b4c-42f5-8e2a-1d6c7b9e0f3a')
+        .expect(401)
+        .expect({
+          "message": "Unauthorized",
+          "statusCode": 401
+        })
+    })
+
+    it('check if get specific users route id does not exist', async () => {
+      const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIkMmIkMTIkMVpSeUx2a3N4VTUva1I0M0dhZjF6dU9kQS5SdnJKSEtDQ1d1bC5HRzIzLk9BbkE3TjFrTmEiLCJ1c2VybmFtZSI6Im53YW5rd29rY2UiLCJpYXQiOjE3ODQwMzI1MjYsImV4cCI6NC45MDAwMDAwMDAwMDAwMTg0ZSsyM30.UH3H8-ez3GUoUAkFgneOtbe03JiPLnUzDdPxTNLA6Ng"
+      return request(app.getHttpServer())
+        .get('/users/f7a3e8d1-9b4c-42f5-8e2a-1d6c7b9e0f3a')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(404)
+        .expect({
+          "message": "usernotfound",
+          "statusCode": 404,
+          "error": "Not Found"
+        })
+    })
+
+    it('check if createuser should be succeful', async () => {
+      const requestbody = {
+        email: "nkelecinwanwok@gmail.com",
+        password: "pouywwjddjs29283",
+        username: "kelechi",
+        isActive: true
+      }
+      return request(app.getHttpServer())
+        .post('/users')
+        .send(requestbody)
+        .expect(201)
+    })
+
+    it('check if email already exist and the errorhandling process', async () => {
+      const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIkMmIkMTIkMVpSeUx2a3N4VTUva1I0M0dhZjF6dU9kQS5SdnJKSEtDQ1d1bC5HRzIzLk9BbkE3TjFrTmEiLCJ1c2VybmFtZSI6Im53YW5rd29rY2UiLCJpYXQiOjE3ODQwMzI1MjYsImV4cCI6NC45MDAwMDAwMDAwMDAwMTg0ZSsyM30.UH3H8-ez3GUoUAkFgneOtbe03JiPLnUzDdPxTNLA6Ng"
+      const requestbody = {
+        email: "yykc292@gmail.com",
+        password: "pouywwjddjs29283",
+        username: "kelechi",
+        isActive: true
+      }
+      return request(app.getHttpServer())
+        .post('/users')
+        .send(requestbody)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(409)
+        .expect({
+          "statusCode": 409,
+          "error": "Conflict",
+          "message": "User with this email already exists"
+        })
+    })
+
+    it('check if username already exist and the errorhandling process', async () => {
+      const requestbody = {
+        email: "yidlsykc292@gmail.com",
+        password: "pouywwjddjs29283",
+        username: "mreazi",
+        isActive: true
+      }
+      return request(app.getHttpServer())
+        .post('/users')
+        .send(requestbody)
+        .expect(409)
+        .expect({
+          "statusCode": 409,
+          "error": "Conflict",
+          "message": "User with this username already exist"
+        })
     })
   })
   afterAll(async () => {
