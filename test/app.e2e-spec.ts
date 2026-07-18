@@ -349,7 +349,6 @@ describe('AppController (e2e)', () => {
     })
 
     it('check if createuser should be succeful', async () => {
-      const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIkMmIkMTIkMVpSeUx2a3N4VTUva1I0M0dhZjF6dU9kQS5SdnJKSEtDQ1d1bC5HRzIzLk9BbkE3TjFrTmEiLCJ1c2VybmFtZSI6Im53YW5rd29rY2UiLCJpYXQiOjE3ODQwMzI1MjYsImV4cCI6NC45MDAwMDAwMDAwMDAwMTg0ZSsyM30.UH3H8-ez3GUoUAkFgneOtbe03JiPLnUzDdPxTNLA6Ng"
       const requestbody = {
         email: "nkelecinwanwok@gmail.com",
         password: "pouywwjddjs29283",
@@ -359,7 +358,6 @@ describe('AppController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/users')
         .send(requestbody)
-        .set('Authorization', `Bearer ${authToken}`)
         .expect(201)
     })
 
@@ -380,6 +378,24 @@ describe('AppController (e2e)', () => {
           "statusCode": 409,
           "error": "Conflict",
           "message": "User with this email already exists"
+        })
+    })
+
+    it('check if username already exist and the errorhandling process', async () => {
+      const requestbody = {
+        email: "yidlsykc292@gmail.com",
+        password: "pouywwjddjs29283",
+        username: "mreazi",
+        isActive: true
+      }
+      return request(app.getHttpServer())
+        .post('/users')
+        .send(requestbody)
+        .expect(409)
+        .expect({
+          "statusCode": 409,
+          "error": "Conflict",
+          "message": "User with this username already exist"
         })
     })
   })

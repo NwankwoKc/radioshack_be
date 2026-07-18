@@ -20,10 +20,13 @@ export class UsersService {
 
   async createuser(body: CreateUserDto): Promise<userResponse> {
     const existingUser = await this.userrepository.findOneBy({ email: body.email });
+    const existingUsername = await this.userrepository.findOneBy({ username: body.username })
+
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
+    } else if (existingUser) {
+      throw new ConflictException("User with this username already exist")
     }
-
     const genSalt = 12;
     const hashedpaswd = await bcrypt.hash(body.password, genSalt)
     const bd = {
